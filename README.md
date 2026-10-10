@@ -40,4 +40,11 @@ http://127.0.0.1:5173/api/auth/oidc/callback/
 
 In Authentik, enable a Group Membership property mapping on the provider so `groups` appears in userinfo. Set `OIDC_PASSWORD_LOGIN=false` to require SSO.
 
+## Health probes
+
+Unauthenticated endpoints for Kubernetes / load balancers:
+
+- `GET /health/live/` — process up (liveness)
+- `GET /health/ready/` — database reachable (readiness); returns `503` when not
+
 See `api/pulumi_state/README.md` for the backend layout, redaction rules, and routes.
