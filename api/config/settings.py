@@ -11,7 +11,8 @@ except ImportError:
     pass
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-pulumi-visualizer-dev")
-DEBUG = os.environ.get("DEBUG", "true").lower() in {"1", "true", "yes"}
+# Default off so production images are safe if DEBUG is omitted from the env.
+DEBUG = os.environ.get("DEBUG", "false").lower() in {"1", "true", "yes"}
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
