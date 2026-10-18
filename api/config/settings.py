@@ -60,10 +60,14 @@ TEMPLATES = [
     },
 ]
 
+# Default under BASE_DIR for local dev. Containers running as non-root cannot
+# write /app (image is root-owned), so set DATABASE_PATH=/tmp/db.sqlite3 there.
+# OIDC login stores state in the sessions table; without a writable DB that
+# request returns 500.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.environ.get("DATABASE_PATH", str(BASE_DIR / "db.sqlite3")),
     }
 }
 
