@@ -97,7 +97,17 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Optional JSON list (local / multi-backend). When empty, a single backend is
+# built from RUSTFS_* + PULUMI_BACKEND_NAME + AWS_* keys (Vault in prod).
 PULUMI_STATE_BACKENDS = os.environ.get("PULUMI_STATE_BACKENDS", "")
+PULUMI_BACKEND_NAME = os.environ.get("PULUMI_BACKEND_NAME", "homelab").strip()
+RUSTFS_BUCKET = os.environ.get("RUSTFS_BUCKET", "").strip()
+RUSTFS_PREFIX = os.environ.get("RUSTFS_PREFIX", "").strip()
+RUSTFS_ENDPOINT_URL = os.environ.get("RUSTFS_ENDPOINT_URL", "").strip()
+RUSTFS_REGION = os.environ.get("RUSTFS_REGION", "us-east-1").strip() or "us-east-1"
+RUSTFS_ADDRESSING_STYLE = os.environ.get("RUSTFS_ADDRESSING_STYLE", "path").strip() or "path"
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "").strip()
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()
 
 # Browser origin after OIDC callback (Vite dev server or production UI).
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://127.0.0.1:5173").rstrip("/")

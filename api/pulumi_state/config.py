@@ -1,7 +1,9 @@
 """Pulumi DIY backend settings.
 
-`PULUMI_STATE_BACKENDS` is a JSON list. Credentials stay in this process and are
-never copied into API responses.
+Prefer discrete env vars (see settings / env.example): non-secret connection
+fields in the AppDefinition, `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`
+from Vault. Optional `PULUMI_STATE_BACKENDS` JSON remains for local/multi-backend.
+Credentials stay in this process and are never copied into API responses.
 """
 
 import json
@@ -60,12 +62,34 @@ def normalize_backend(raw):
     }
 
 
+def _backend_from_rustfs_env():
+    """Single backend from RUSTFS_* / PULUMI_BACKEND_* / AWS_* env (prod path)."""
+    from django.conf import settings
+
+    bucket = _blank(getattr(settings, "RUSTFS_BUCKET", ""))
+    if not bucket:
+        return None
+    return normalize_backend(
+        {
+            "name": _blank(getattr(settings, "PULUMI_BACKEND_NAME", "")) or "homelab",
+            "bucket": bucket,
+            "prefix": getattr(settings, "RUSTFS_PREFIX", "") or "",
+            "endpoint_url": getattr(settings, "RUSTFS_ENDPOINT_URL", None),
+            "region": getattr(settings, "RUSTFS_REGION", None) or "us-east-1",
+            "access_key_id": getattr(settings, "AWS_ACCESS_KEY_ID", None),
+            "secret_access_key": getattr(settings, "AWS_SECRET_ACCESS_KEY", None),
+            "addressing_style": getattr(settings, "RUSTFS_ADDRESSING_STYLE", None) or "path",
+        }
+    )
+
+
 def configured_backends():
     from django.conf import settings
 
     raw = getattr(settings, "PULUMI_STATE_BACKENDS", "")
     if raw is None or raw == "" or raw == []:
-        return []
+        env_backend = _backend_from_rustfs_env()
+        return [env_backend] if env_backend else []
     if isinstance(raw, str):
         try:
             raw = json.loads(raw)

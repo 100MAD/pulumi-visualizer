@@ -414,3 +414,33 @@ class InvalidConfigTests(TestCase):
         response = self.client.get("/api/pulumi/backends/")
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.json()["error"], "PULUMI_STATE_BACKENDS is not valid JSON")
+
+
+@override_settings(
+    PULUMI_STATE_BACKENDS="",
+    PULUMI_BACKEND_NAME="homelab",
+    RUSTFS_BUCKET="pulumi-state",
+    RUSTFS_PREFIX="",
+    RUSTFS_ENDPOINT_URL="http://rustfs:9000",
+    RUSTFS_REGION="us-east-1",
+    RUSTFS_ADDRESSING_STYLE="path",
+    AWS_ACCESS_KEY_ID="from-vault-ak",
+    AWS_SECRET_ACCESS_KEY="from-vault-sk",
+)
+class RustfsEnvBackendTests(TestCase):
+    def setUp(self):
+        user = get_user_model().objects.create_user("op", password="secret")
+        self.client = APIClient()
+        self.client.force_authenticate(user)
+
+    def test_backends_from_rustfs_env(self):
+        response = self.client.get("/api/pulumi/backends/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {"backends": [{"name": "homelab", "bucket": "pulumi-state", "prefix": ""}]},
+        )
+        # credentials must not leak into the public listing
+        body = json.dumps(response.json())
+        self.assertNotIn("from-vault-ak", body)
+        self.assertNotIn("from-vault-sk", body)

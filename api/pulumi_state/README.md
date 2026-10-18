@@ -4,7 +4,20 @@ Read-only view of Pulumi DIY (S3) state. The Stacks page polls `/api/pulumi/` ev
 
 ## Configuration
 
-`PULUMI_STATE_BACKENDS` is a JSON list:
+**Production (preferred):** set non-secret fields as env and mount keys from Vault:
+
+| Env | Example |
+|-----|---------|
+| `PULUMI_BACKEND_NAME` | `homelab` |
+| `RUSTFS_BUCKET` | `pulumi-state` |
+| `RUSTFS_PREFIX` | _(empty)_ |
+| `RUSTFS_ENDPOINT_URL` | `http://rustfs:9000` |
+| `RUSTFS_REGION` | `us-east-1` |
+| `RUSTFS_ADDRESSING_STYLE` | `path` |
+| `AWS_ACCESS_KEY_ID` | _(Vault)_ |
+| `AWS_SECRET_ACCESS_KEY` | _(Vault)_ |
+
+**Local / multi-backend:** optional `PULUMI_STATE_BACKENDS` JSON list (wins when set):
 
 ```json
 [
@@ -21,7 +34,7 @@ Read-only view of Pulumi DIY (S3) state. The Stacks page polls `/api/pulumi/` ev
 ]
 ```
 
-`addressing_style` is `path` when `endpoint_url` is set and omitted, and `auto` otherwise. Leave the variable empty to show an empty Stacks page. API responses include `name`, `bucket`, and `prefix` only.
+`addressing_style` defaults to `path` when an endpoint is set. Leave both JSON and `RUSTFS_BUCKET` empty for an empty Stacks page. API responses include `name`, `bucket`, and `prefix` only.
 
 Objects are read from the file-backend layout:
 
